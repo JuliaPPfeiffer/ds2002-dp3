@@ -12,15 +12,25 @@ import boto3
 from botocore.exceptions import ClientError
 import requests
 import json
+import collections
+from collections import OrderedDict
 
 # (1) Getting the message from your queue:
 
 # Set up your SQS queue URL and boto3 client
 url = "https://sqs.us-east-1.amazonaws.com/440848399208/ktq3td"
-sqs = boto3.client('sqs', region_name='us-east-1s')
+sqs = boto3.client('sqs', region_name='us-east-1')
 
 AllMessages = {} 
-#  "Order: {order}": word
+# Sorted_Messages = collections.OrderedDict(sorted(AllMessages.items()))
+
+# Creates a sorted dictionary (sorted by key)
+Sorted_Messages = OrderedDict(sorted(AllMessages.items()))
+print(Sorted_Messages)
+
+# sorted_dict = dict(sorted(AllMessages.items()))
+# print(sorted_dict)
+
 
 # def delete_message(handle):
 #     try:
@@ -34,7 +44,7 @@ AllMessages = {}
 #         print(e.response['Error']['Message'])
 
 def get_message():
-    for m in range(1, 10):
+    for m in range(1, 11):
         try:
         # We are trying to get message from SQS queue; each has two attributes (order and word)
         # Goal: extract those two attributes --> reassemble the message***
@@ -57,18 +67,32 @@ def get_message():
                 handle = response['Messages'][0]['ReceiptHandle']
 
                 # Print the message attributes - this is what you want to work with to reassemble the message
-                print(f"Order: {order}")
-                print(f"Word: {word}")
+                # print(f"Order: {order}")
+                # print(f"Word: {word}")
+
+                message = {order: word}
+                AllMessages.update(message)
     
+                # delete here
+                # delete_message(handle)
+
 
             # If there is no message in the queue, print a message and exit    
             else:
                 print("No message in the queue")
-                exit(1)
+                # exit(1)
+                continue
             
         # Handle any errors that may occur connecting to SQS
         except ClientError as e:
             print(e.response['Error']['Message'])
+
+    # print(AllMessages)
+
+    # TO DO
+    # 1. sort your dictionary by key
+
+    # 2. fetch out the VALUES from the dict (another for loop)
 
 # Trigger the function***
 if __name__ == "__main__":
